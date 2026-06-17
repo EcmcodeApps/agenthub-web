@@ -5,8 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { registerUser } from "@/lib/firebase/auth";
 import { createOrganization } from "@/lib/firebase/organizations";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { getDb } from "@/lib/firebase/config";
+import { fsSet } from "@/lib/firebase/firestore-rest";
 
 const INDUSTRIES = [
   { value: "fintech", label: "Fintech / Banca" },
@@ -68,10 +67,10 @@ export default function RegistroPage() {
         ownerId: uid, planId: "plan_emprendedor",
         status: "trial", healthScore: 100, phone: form.whatsapp,
       });
-      await setDoc(doc(getDb(), "users", uid), {
+      await fsSet("users", uid, {
         organizationId: orgId, name: form.name,
         email: form.email, role: "owner",
-        phone: form.whatsapp, createdAt: serverTimestamp(),
+        phone: form.whatsapp, createdAt: new Date().toISOString(),
       });
       setStatus("success");
       setTimeout(() => router.push("/onboarding"), 1000);

@@ -2,7 +2,6 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, initializeFirestore, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
@@ -18,24 +17,11 @@ function getApp_() {
   return getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 }
 
-export const auth = getAuth(getApp_());
-
-let _db: ReturnType<typeof getFirestore> | null = null;
-
-export function getDb() {
-  if (!_db) {
-    const app = getApp_();
-    try {
-      _db = getFirestore(app);
-    } catch {
-      _db = initializeFirestore(app, { cacheSizeBytes: CACHE_SIZE_UNLIMITED });
-    }
-  }
-  return _db;
-}
+export const app  = getApp_();
+export const auth = getAuth(app);
 
 export function getStorageBucket() {
-  return getStorage(getApp_());
+  return getStorage(app);
 }
 
-export default getApp_();
+export default app;
