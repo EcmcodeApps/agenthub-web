@@ -3,15 +3,21 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/providers";
-import Image from "next/image";
-
 const STEPS = ["Bienvenida", "Tu empresa", "Agentes"] as const;
 
 const INDUSTRIES = [
-  { id: "retail",       label: "Retail",       icon: "shopping_bag",   src: "https://lh3.googleusercontent.com/aida-public/AB6AXuB7JsIXzi4iB2Ut9SamjujFKuyrtjJUQ0_s7KUVpPl7LYmE4p15_lj-m35cKcqnadounjvN8j254dTDLFdOiBoX4MhBAeiz6hQw8kCOR1TxXz06K2Ctbk-EO6_3RP1lp2h6Y0pBnO763kVVV4GTuuEltf7ppRLE_F80tf6ueW0tg5W-Uxih-L1txezNvVX7IXrR64sogRPa1r-vL0qhAWC-ShNfiNr3ENVYV6Ratc7vt8goXlKga80ICWMcYCh7P7hFb55pTF1XMRw", alt: "Retail" },
-  { id: "restaurantes", label: "Restaurantes", icon: "restaurant",      src: "https://lh3.googleusercontent.com/aida-public/AB6AXuBqoK4DIHea1wOS8uPzhBdA_578e0_RaTZ6Mn1-9o_ho01uaziAVkt3NWesTqk0Q615vqHJo-gRYfjJsV7Fmt_kl3Am_PVKT7T8AKeLVrUJf5gVVvYg-lNw6gMdZ4zdELGo3RN8ECjqZ2BdF1FK_x2LGccmOm05VLrMT7XJbPvadWnb1ZSYC5jvdNdb1gXeaAsUPoLhIzrfH_Wd7hc5INso2_uBqG5A_PMVKi_hVAo2mJ9Rvv7WEy-PoMylHyPNxyJ3hI18z4i6P0A", alt: "Restaurantes" },
-  { id: "logistica",    label: "Logística",    icon: "local_shipping",  src: "https://lh3.googleusercontent.com/aida-public/AB6AXuCTqwRJwyU1P8pJ-zJPtqQPXeGeRz07HIZavpToPLkIsRt4ev_1ybbBf6KiXb5CBVgzxWz-cjg3y3y6LMfMEV_M6ICSaHtv02HOsyerv9diSk4Pe6KlR86GxcDEITg3lUZO0bLe4boFVS9m-CyeOU3LyNbbM9WmjMlKOP_aMS94HIin8WmiuotHCLlpeaRD4X1x-sz1p1eOcUM-WDcoHvdq0fvVpFAQWhwuBbli_3h6iWAsQzjMvBssIKonQnSpyeQ6nqM504bK8P8", alt: "Logística" },
-  { id: "servicios",    label: "Servicios",    icon: "business_center", src: "https://lh3.googleusercontent.com/aida-public/AB6AXuAGkHE9jzImGbyI8bgUFVWVAA_nBVY8CXL7IEy9ZeqRytwHdQej5vIaQovPF564JvbR2P0WWkHyeXa2HAaiCBDdRLQvq9mwwoN9cm035cVIHFnVYwXpUit5g4GK5o0HKFEGoShTwpr0IpRwk5aK6-rhcsK5n05t2KqTt5k-vpAKxDjQlHTyXtEA_L9K0jv4v7IpOSY0xqKHukDtkxncwlyzhofdInfp_ddwr1oFcnCBS4jViYxv7mvGw3oRc1yesziWcQPiCxdAM9c", alt: "Servicios" },
+  { id: "retail",        label: "Retail / E-commerce", icon: "shopping_bag",    color: "#6366f1" },
+  { id: "restaurantes",  label: "Restaurantes",         icon: "restaurant",      color: "#f59e0b" },
+  { id: "logistica",     label: "Logística",            icon: "local_shipping",  color: "#3b82f6" },
+  { id: "servicios",     label: "Servicios",            icon: "business_center", color: "#8b5cf6" },
+  { id: "agro",          label: "Agropecuario",         icon: "agriculture",     color: "#16a34a" },
+  { id: "salud",         label: "Salud / Pharma",       icon: "health_and_safety", color: "#ef4444" },
+  { id: "educacion",     label: "Educación",            icon: "school",          color: "#0ea5e9" },
+  { id: "inmobiliaria",  label: "Inmobiliaria",         icon: "apartment",       color: "#d97706" },
+  { id: "fintech",       label: "Fintech / Banca",      icon: "account_balance", color: "#0058be" },
+  { id: "manufactura",   label: "Manufactura",          icon: "factory",         color: "#64748b" },
+  { id: "legal",         label: "Legal / Consultoría",  icon: "gavel",           color: "#7c3aed" },
+  { id: "otro",          label: "Otro sector",          icon: "category",        color: "#6b7280" },
 ];
 
 const AGENT_TYPES = [
@@ -162,24 +168,21 @@ export default function OnboardingPage() {
                 <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>
                   ¿En qué industria opera tu empresa?
                 </label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
                   {INDUSTRIES.map((ind) => {
                     const sel = industry === ind.id;
                     return (
                       <button key={ind.id} type="button" onClick={() => setIndustry(ind.id)}
-                        style={{ position: "relative", height: 160, borderRadius: 12, overflow: "hidden", textAlign: "left", border: sel ? "2px solid #0058be" : "1px solid #e5e7eb", boxShadow: sel ? "0 0 0 4px rgba(0,88,190,0.08)" : "none", transition: "all 0.2s", cursor: "pointer", background: "transparent", padding: 0 }}>
-                        <Image src={ind.src} alt={ind.alt} fill style={{ objectFit: "cover", filter: sel ? "grayscale(20%)" : "grayscale(50%)", transition: "all 0.3s" }} />
-                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.75), transparent)" }} />
-                        {sel && <div style={{ position: "absolute", inset: 0, background: "rgba(0,88,190,0.25)" }} />}
+                        style={{ position: "relative", padding: "16px 12px", borderRadius: 12, textAlign: "center", border: sel ? `2px solid ${ind.color}` : "1px solid #e5e7eb", boxShadow: sel ? `0 0 0 4px ${ind.color}18` : "none", background: sel ? `${ind.color}08` : "#fff", cursor: "pointer", transition: "all 0.2s", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                         {sel && (
-                          <div style={{ position: "absolute", top: 10, right: 10, width: 24, height: 24, background: "#0058be", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <span className="material-symbols-outlined" style={{ color: "#fff", fontSize: 14 }}>check</span>
+                          <div style={{ position: "absolute", top: 8, right: 8, width: 18, height: 18, background: ind.color, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <span className="material-symbols-outlined" style={{ color: "#fff", fontSize: 12 }}>check</span>
                           </div>
                         )}
-                        <div style={{ position: "absolute", bottom: 14, left: 14, display: "flex", flexDirection: "column", gap: 2 }}>
-                          <span className="material-symbols-outlined" style={{ color: "rgba(255,255,255,0.8)", fontSize: 20 }}>{ind.icon}</span>
-                          <span style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{ind.label}</span>
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: sel ? ind.color : "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
+                          <span className="material-symbols-outlined" style={{ color: sel ? "#fff" : "#6b7280", fontSize: 24, fontVariationSettings: "'FILL' 1" }}>{ind.icon}</span>
                         </div>
+                        <span style={{ fontSize: 13, fontWeight: sel ? 700 : 500, color: sel ? ind.color : "#374151", lineHeight: 1.3 }}>{ind.label}</span>
                       </button>
                     );
                   })}
