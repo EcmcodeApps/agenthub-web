@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { registerUser } from "@/lib/firebase/auth";
+import { registerUser, loginWithGoogle } from "@/lib/firebase/auth";
 import { createOrganization } from "@/lib/firebase/organizations";
 import { fsSet } from "@/lib/firebase/firestore-rest";
 
@@ -51,6 +51,28 @@ export default function RegistroPage() {
 
   const set = (field: string, value: string) =>
     setForm((p) => ({ ...p, [field]: value }));
+
+  const handleGoogle = async () => {
+    setError("");
+    setStatus("loading");
+    try {
+      const credential = await loginWithGoogle();
+      const uid = credential.user.uid;
+      await fsSet("users", uid, {
+        name: credential.user.displayName ?? "",
+        email: credential.user.email ?? "",
+        role: "owner",
+        createdAt: new Date().toISOString(),
+        googleSignIn: true,
+      });
+      setStatus("success");
+      setTimeout(() => router.push("/onboarding"), 800);
+    } catch (err: unknown) {
+      setStatus("idle");
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Error Google: ${msg}`);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -265,6 +287,20 @@ export default function RegistroPage() {
                       />
                     </div>
                   </div>
+                </div>
+
+                {/* Google */}
+                <button type="button" onClick={handleGoogle} disabled={status === "loading"}
+                  className="w-full flex items-center justify-center gap-3 border border-outline-variant rounded-lg py-sm font-title-md bg-white hover:bg-surface-container-low transition-all"
+                  style={{ fontSize: 15 }}>
+                  <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.9 2.5 30.3 0 24 0 14.7 0 6.7 5.5 2.7 13.5l7.8 6C12.4 13.2 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17z"/><path fill="#FBBC05" d="M10.5 28.5c-.5-1.5-.8-3-.8-4.5s.3-3 .8-4.5l-7.8-6C1 16.5 0 20.1 0 24s1 7.5 2.7 10.5l7.8-6z"/><path fill="#34A853" d="M24 48c6.3 0 11.6-2.1 15.5-5.7l-7.5-5.8c-2.1 1.4-4.8 2.2-8 2.2-6.2 0-11.6-3.7-13.5-9l-7.8 6C6.7 42.5 14.7 48 24 48z"/></svg>
+                  Registrarme con Google
+                </button>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-outline-variant" />
+                  <span className="text-sm text-on-surface-variant">o con correo</span>
+                  <div className="flex-1 h-px bg-outline-variant" />
                 </div>
 
                 {/* Términos */}

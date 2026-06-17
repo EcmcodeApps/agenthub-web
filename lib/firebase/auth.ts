@@ -4,6 +4,8 @@ import {
   signOut,
   sendPasswordResetEmail,
   updateProfile,
+  signInWithPopup,
+  GoogleAuthProvider,
   type UserCredential,
 } from "firebase/auth";
 import { auth } from "./config";
@@ -20,6 +22,12 @@ export async function registerUser(
 
 export async function loginUser(email: string, password: string): Promise<UserCredential> {
   return signInWithEmailAndPassword(auth, email, password);
+}
+
+export async function loginWithGoogle(): Promise<UserCredential> {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  return signInWithPopup(auth, provider);
 }
 
 export async function logoutUser(): Promise<void> {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginUser } from "@/lib/firebase/auth";
+import { loginUser, loginWithGoogle } from "@/lib/firebase/auth";
 
 const STATS = [
   { value: "+500", label: "Empresas" },
@@ -18,6 +18,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error,    setError]    = useState("");
   const [loading,  setLoading]  = useState(false);
+
+  const handleGoogle = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      await loginWithGoogle();
+      router.push("/app/dashboard");
+    } catch {
+      setError("No se pudo iniciar sesión con Google.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,16 +157,12 @@ export default function LoginPage() {
               <div style={{ flex: 1, height: 1, background: "#e5e7eb" }} />
             </div>
 
-            {/* SSO / Token */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              {[{ icon: "corporate_fare", label: "SSO" }, { icon: "key", label: "Token" }].map((btn) => (
-                <button key={btn.label} type="button"
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, border: "1.5px solid #e5e7eb", borderRadius: 10, padding: "11px", background: "#fff", fontSize: 14, fontWeight: 600, color: "#374151", cursor: "pointer" }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#6b7280" }}>{btn.icon}</span>
-                  {btn.label}
-                </button>
-              ))}
-            </div>
+            {/* Google */}
+            <button type="button" onClick={handleGoogle} disabled={loading}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, border: "1.5px solid #e5e7eb", borderRadius: 10, padding: "11px", background: "#fff", fontSize: 14, fontWeight: 600, color: "#374151", cursor: "pointer", width: "100%" }}>
+              <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.9 2.5 30.3 0 24 0 14.7 0 6.7 5.5 2.7 13.5l7.8 6C12.4 13.2 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17z"/><path fill="#FBBC05" d="M10.5 28.5c-.5-1.5-.8-3-.8-4.5s.3-3 .8-4.5l-7.8-6C1 16.5 0 20.1 0 24s1 7.5 2.7 10.5l7.8-6z"/><path fill="#34A853" d="M24 48c6.3 0 11.6-2.1 15.5-5.7l-7.5-5.8c-2.1 1.4-4.8 2.2-8 2.2-6.2 0-11.6-3.7-13.5-9l-7.8 6C6.7 42.5 14.7 48 24 48z"/></svg>
+              Continuar con Google
+            </button>
           </form>
 
           {/* Registro */}
