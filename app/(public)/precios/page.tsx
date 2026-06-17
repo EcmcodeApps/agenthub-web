@@ -1,7 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 
-const PLANS = [
+type PlanFeature = { icon: string; text: string; bold?: boolean; highlight?: boolean };
+type Plan = { name: string; subtitle: string; price: string; features: PlanFeature[]; cta: string; ctaStyle: string; featured: boolean };
+
+const PLANS: Plan[] = [
   {
     name: "Plan Emprendedor",
     subtitle: "Ideal comercios pequeños",
