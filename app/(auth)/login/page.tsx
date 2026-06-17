@@ -14,10 +14,10 @@ const STATS = [
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [error,    setError]    = useState("");
+  const [loading,  setLoading]  = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,39 +36,43 @@ export default function LoginPage() {
   return (
     <div className="bg-background font-body-md text-on-surface min-h-screen flex overflow-hidden">
 
-      {/* ── Lado izquierdo: Formulario ── */}
-      <main className="w-full lg:w-[480px] xl:w-[560px] h-screen bg-surface flex flex-col justify-between p-margin-desktop z-10 shadow-xl lg:shadow-none">
+      {/* ── Formulario ── */}
+      <main style={{ width: "100%", maxWidth: "520px", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "2.5rem", background: "var(--color-surface, #fcf8fa)", boxShadow: "4px 0 24px rgba(0,0,0,0.06)", zIndex: 10 }}>
 
         {/* Logo */}
-        <div className="flex items-center gap-sm">
-          <span className="material-symbols-outlined text-secondary text-[32px]">smart_toy</span>
-          <h1 className="font-headline-md text-headline-md font-bold tracking-tight text-primary">
-            AgentHub
-          </h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ width: 40, height: 40, background: "#0058be", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span className="material-symbols-outlined" style={{ color: "#fff", fontSize: 22, fontVariationSettings: "'FILL' 1" }}>smart_toy</span>
+          </div>
+          <span style={{ fontWeight: 800, fontSize: 20, color: "#000", letterSpacing: "-0.02em" }}>AgentHub</span>
         </div>
 
-        {/* Form */}
-        <div className="max-w-[400px] w-full mx-auto">
-          <header className="mb-xl">
-            <h2 className="font-headline-lg text-headline-lg text-on-background mb-sm">
+        {/* Form block */}
+        <div style={{ width: "100%", maxWidth: "400px", margin: "0 auto" }}>
+
+          {/* Header */}
+          <div style={{ marginBottom: "2rem" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 999, padding: "4px 12px", marginBottom: 16 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 14, color: "#1d4ed8" }}>verified</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#1d4ed8", letterSpacing: "0.05em" }}>PORTAL EMPRESARIAL</span>
+            </div>
+            <h2 style={{ fontSize: 28, fontWeight: 800, color: "#111827", letterSpacing: "-0.02em", marginBottom: 8, lineHeight: 1.2 }}>
               Bienvenido de nuevo
             </h2>
-            <p className="font-body-lg text-body-lg text-on-surface-variant">
-              Ingresa tus credenciales para acceder al portal empresarial.
+            <p style={{ fontSize: 15, color: "#6b7280", lineHeight: 1.6 }}>
+              Ingresa tus credenciales para acceder a tu panel.
             </p>
-          </header>
+          </div>
 
-          <form className="space-y-lg" onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+
             {/* Email */}
-            <div className="space-y-xs group">
-              <label
-                htmlFor="email"
-                className="font-label-sm text-label-sm text-on-surface-variant group-focus-within:text-secondary transition-colors"
-              >
-                Correo electrónico empresarial
+            <div>
+              <label htmlFor="email" style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>
+                Correo electrónico
               </label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">
+              <div style={{ position: "relative" }}>
+                <span className="material-symbols-outlined" style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 18, color: "#9ca3af", pointerEvents: "none" }}>
                   mail
                 </span>
                 <input
@@ -78,30 +82,25 @@ export default function LoginPage() {
                   placeholder="nombre@empresa.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-xl pr-md py-md bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-secondary transition-all placeholder:text-outline-variant font-body-md text-body-md"
-                  style={{ "--tw-ring-color": "rgba(0,88,190,0.1)" } as React.CSSProperties}
+                  style={{ width: "100%", paddingLeft: 44, paddingRight: 14, paddingTop: 12, paddingBottom: 12, border: "1.5px solid #e5e7eb", borderRadius: 10, fontSize: 14, outline: "none", background: "#fff", color: "#111827", boxSizing: "border-box", transition: "border-color 0.2s" }}
+                  onFocus={e => e.target.style.borderColor = "#0058be"}
+                  onBlur={e => e.target.style.borderColor = "#e5e7eb"}
                 />
               </div>
             </div>
 
             {/* Contraseña */}
-            <div className="space-y-xs group">
-              <div className="flex justify-between items-center">
-                <label
-                  htmlFor="password"
-                  className="font-label-sm text-label-sm text-on-surface-variant group-focus-within:text-secondary transition-colors"
-                >
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <label htmlFor="password" style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
                   Contraseña
                 </label>
-                <Link
-                  href="/recuperar-password"
-                  className="font-label-sm text-label-sm text-secondary hover:underline"
-                >
+                <Link href="/recuperar-password" style={{ fontSize: 13, color: "#0058be", fontWeight: 600, textDecoration: "none" }}>
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline">
+              <div style={{ position: "relative" }}>
+                <span className="material-symbols-outlined" style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 18, color: "#9ca3af", pointerEvents: "none" }}>
                   lock
                 </span>
                 <input
@@ -111,14 +110,17 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-xl pr-md py-md bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-secondary transition-all placeholder:text-outline-variant font-body-md text-body-md"
+                  style={{ width: "100%", paddingLeft: 44, paddingRight: 14, paddingTop: 12, paddingBottom: 12, border: "1.5px solid #e5e7eb", borderRadius: 10, fontSize: 14, outline: "none", background: "#fff", color: "#111827", boxSizing: "border-box", transition: "border-color 0.2s" }}
+                  onFocus={e => e.target.style.borderColor = "#0058be"}
+                  onBlur={e => e.target.style.borderColor = "#e5e7eb"}
                 />
               </div>
             </div>
 
             {/* Error */}
             {error && (
-              <div className="px-md py-sm rounded-lg bg-error-container text-on-error-container font-body-md text-body-md border border-error/20">
+              <div style={{ padding: "10px 14px", borderRadius: 8, background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>error</span>
                 {error}
               </div>
             )}
@@ -127,118 +129,102 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-secondary text-on-secondary font-title-md text-title-md py-md rounded-lg shadow-sm hover:brightness-110 active:scale-[0.98] transition-all flex justify-center items-center gap-sm disabled:opacity-60"
+              style={{ width: "100%", background: "#0058be", color: "#fff", fontWeight: 700, fontSize: 16, padding: "14px", borderRadius: 10, border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "opacity 0.2s" }}
             >
-              {loading ? (
-                <span className="material-symbols-outlined animate-spin">sync</span>
-              ) : (
-                <>
-                  Entrar a mi panel
-                  <span className="material-symbols-outlined">chevron_right</span>
-                </>
-              )}
+              {loading
+                ? <span className="material-symbols-outlined" style={{ animation: "spin 1s linear infinite", fontSize: 20 }}>sync</span>
+                : <>Entrar a mi panel <span className="material-symbols-outlined" style={{ fontSize: 20 }}>chevron_right</span></>
+              }
             </button>
 
             {/* Divider */}
-            <div className="relative py-md flex items-center">
-              <div className="flex-grow border-t border-outline-variant" />
-              <span className="flex-shrink mx-md font-label-sm text-label-sm text-outline-variant">
-                o accede con
-              </span>
-              <div className="flex-grow border-t border-outline-variant" />
+            <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "4px 0" }}>
+              <div style={{ flex: 1, height: 1, background: "#e5e7eb" }} />
+              <span style={{ fontSize: 12, color: "#9ca3af", fontWeight: 500 }}>o accede con</span>
+              <div style={{ flex: 1, height: 1, background: "#e5e7eb" }} />
             </div>
 
-            {/* SSO buttons */}
-            <div className="grid grid-cols-2 gap-md">
-              {[
-                { icon: "corporate_fare", label: "SSO" },
-                { icon: "key", label: "Token" },
-              ].map((btn) => (
-                <button
-                  key={btn.label}
-                  type="button"
-                  className="flex items-center justify-center gap-sm border border-outline-variant bg-surface-container-lowest py-sm rounded-lg hover:bg-surface-container-low transition-colors font-body-md text-body-md"
-                >
-                  <span className="material-symbols-outlined text-on-surface-variant">{btn.icon}</span>
+            {/* SSO / Token */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {[{ icon: "corporate_fare", label: "SSO" }, { icon: "key", label: "Token" }].map((btn) => (
+                <button key={btn.label} type="button"
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, border: "1.5px solid #e5e7eb", borderRadius: 10, padding: "11px", background: "#fff", fontSize: 14, fontWeight: 600, color: "#374151", cursor: "pointer" }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#6b7280" }}>{btn.icon}</span>
                   {btn.label}
                 </button>
               ))}
             </div>
           </form>
 
-          <footer className="mt-2xl text-center">
-            <p className="font-body-md text-body-md text-on-surface-variant">
-              ¿No tienes una cuenta empresarial?{" "}
-              <Link href="/registro" className="text-secondary font-bold hover:underline">
-                Crear cuenta
-              </Link>
-            </p>
-          </footer>
+          {/* Registro */}
+          <p style={{ textAlign: "center", fontSize: 14, color: "#6b7280", marginTop: "1.5rem" }}>
+            ¿No tienes cuenta?{" "}
+            <Link href="/registro" style={{ color: "#0058be", fontWeight: 700, textDecoration: "none" }}>
+              Crear cuenta gratis
+            </Link>
+          </p>
         </div>
 
         {/* Legal */}
-        <div className="flex flex-wrap justify-center gap-md font-label-sm text-label-sm text-outline border-t border-outline-variant pt-lg">
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "1rem", fontSize: 12, color: "#9ca3af", borderTop: "1px solid #f3f4f6", paddingTop: "1.25rem" }}>
           <span>© 2026 AgentHub Empresarial</span>
           {["Privacidad", "Términos", "Contacto"].map((l) => (
-            <a key={l} href="#" className="hover:text-on-surface transition-colors">{l}</a>
+            <a key={l} href="#" style={{ color: "#9ca3af", textDecoration: "none" }}>{l}</a>
           ))}
         </div>
       </main>
 
-      {/* ── Lado derecho: Branding ── */}
-      <aside className="hidden lg:flex flex-1 relative items-center justify-center overflow-hidden bg-primary-container">
-        {/* Gradient mesh */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-primary-container via-[#004395] to-secondary-container" />
+      {/* ── Branding derecho ── */}
+      <aside className="hidden lg:flex" style={{ flex: 1, position: "relative", alignItems: "center", justifyContent: "center", overflow: "hidden", background: "linear-gradient(135deg, #0f1f3d 0%, #0058be 60%, #1a3a6e 100%)" }}>
 
-        {/* Content */}
-        <div className="relative z-10 w-full max-w-2xl text-center px-xl">
-          <div className="mb-xl rounded-2xl overflow-hidden shadow-2xl border border-white/10 group relative">
+        {/* Blobs decorativos */}
+        <div style={{ position: "absolute", top: "10%", left: "20%", width: 300, height: 300, background: "rgba(96,165,250,0.15)", borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "15%", right: "10%", width: 200, height: 200, background: "rgba(139,92,246,0.15)", borderRadius: "50%", filter: "blur(50px)", pointerEvents: "none" }} />
+
+        <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: "540px", textAlign: "center", padding: "0 2.5rem" }}>
+
+          {/* Imagen */}
+          <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 32px 80px rgba(0,0,0,0.4)", marginBottom: "2rem" }}>
             <Image
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWPyxZbFcOCb686GcysOIm_B7dB_zJkugWmz0CoU-jyWzpKfbbNeO8PCkjAdnoKwaN6uRl5McpQLUDfWL87mYupUY8xILaA9zkXPokHWyv_OF-nVLcD7Y1b0nvx6nlmirwekIJWKXI-gQzb3UIIRt8CujKVvLyCfi9eH1lNFpUT3NKSGVDCoKk3Y_yqo7kqlIBYKwkRP46ttxwQE0DUUjcInu2bwWbAVOpZJM3KfPyi1REFmq2KdI-MWcHKrSXSBSMoM6wq190Zqk"
-              alt="Equipos de agentes IA trabajando"
+              alt="Dashboard AgentHub"
               width={800}
-              height={450}
-              className="w-full h-[450px] object-cover transition-transform duration-700 group-hover:scale-105"
+              height={420}
+              style={{ width: "100%", height: 280, objectFit: "cover", display: "block" }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary-container/80 via-transparent to-transparent" />
           </div>
 
-          <div className="space-y-md">
-            <h3 className="font-display-xl text-display-xl text-on-primary-container leading-tight">
-              Tecnología avanzada con{" "}
-              <span className="text-on-secondary">rostro humano.</span>
-            </h3>
-            <p className="font-body-lg text-body-lg text-on-primary-container/80 max-w-lg mx-auto">
-              Potenciamos la productividad de tu empresa con el ecosistema de agentes inteligentes
-              más robusto de Latinoamérica.
-            </p>
+          {/* Copy */}
+          <h3 style={{ fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 900, color: "#fff", lineHeight: 1.15, marginBottom: 16, letterSpacing: "-0.02em" }}>
+            Tecnología avanzada con{" "}
+            <span style={{ color: "#60a5fa" }}>rostro humano.</span>
+          </h3>
+          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.6)", lineHeight: 1.7, marginBottom: "2rem", maxWidth: 420, margin: "0 auto 2rem" }}>
+            Potenciamos la productividad de tu empresa con el ecosistema de agentes inteligentes más robusto de Latinoamérica.
+          </p>
 
-            {/* Stats */}
-            <div className="flex justify-center gap-xl pt-lg">
-              {STATS.map((s, i) => (
-                <div key={s.label} className="flex items-center gap-xl">
-                  <div className="text-center">
-                    <div className="font-headline-md text-headline-md text-on-primary-fixed">{s.value}</div>
-                    <div className="font-label-sm text-label-sm text-on-primary-container/60">{s.label}</div>
-                  </div>
-                  {i < STATS.length - 1 && <div className="w-px h-12 bg-white/10" />}
+          {/* Stats */}
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "2rem" }}>
+            {STATS.map((s, i) => (
+              <div key={s.label} style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>{s.label}</div>
                 </div>
-              ))}
-            </div>
+                {i < STATS.length - 1 && <div style={{ width: 1, height: 36, background: "rgba(255,255,255,0.15)" }} />}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Floating badge */}
-        <div className="absolute bottom-10 right-10 flex items-center gap-sm bg-white/5 backdrop-blur-md px-md py-sm rounded-full border border-white/10 animate-bounce">
-          <span
-            className="material-symbols-outlined text-secondary"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            bolt
-          </span>
-          <span className="font-label-sm text-label-sm text-on-primary-container">IA Optimizada</span>
+        {/* Badge flotante */}
+        <div style={{ position: "absolute", bottom: 32, right: 32, display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 999, padding: "8px 16px" }}>
+          <span className="material-symbols-outlined" style={{ color: "#60a5fa", fontSize: 16, fontVariationSettings: "'FILL' 1" }}>bolt</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>IA Optimizada</span>
         </div>
       </aside>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
