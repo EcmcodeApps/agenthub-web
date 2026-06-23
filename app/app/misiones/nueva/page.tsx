@@ -3,7 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import AppSidebar from "@/app/_components/AppSidebar";
+import { apiPost } from "@/lib/api/client";
 
 const DEPTH_OPTIONS = [
   { value: "rapido",      label: "Rápido",      desc: "Análisis superficial para decisiones inmediatas.",     icon: "bolt" },
@@ -34,15 +36,48 @@ const STEPS = [
   { n: 3, label: "Ejecución" },
 ];
 
+const DEPTH_MAP: Record<string, string> = {
+  rapido: "fast", balanceado: "balanced", estrategico: "deep",
+};
+
 export default function NuevaMisionPage() {
+  const router = useRouter();
   const [goal,       setGoal]       = useState("");
   const [context,    setContext]    = useState("");
   const [depth,      setDepth]      = useState("balanceado");
   const [files,      setFiles]      = useState(INITIAL_FILES);
   const [industries, setIndustries] = useState(INITIAL_INDUSTRIES);
+  const [loading,    setLoading]    = useState(false);
+  const [error,      setError]      = useState("");
 
-  const toggleFile    = (id: string) => setFiles(prev => prev.map(f => f.id === id ? { ...f, selected: !f.selected } : f));
+  const toggleFile     = (id: string) => setFiles(prev => prev.map(f => f.id === id ? { ...f, selected: !f.selected } : f));
   const selectIndustry = (id: string) => setIndustries(prev => prev.map(i => ({ ...i, selected: i.id === id })));
+
+  const handleNext = async () => {
+    if (!goal.trim() || goal.trim().length < 10) {
+      setError("Describe tu objetivo con al menos 10 caracteres."); return;
+    }
+    const industry = industries.find(i => i.selected);
+    if (!industry) { setError("Selecciona un sector industrial."); return; }
+    setError(""); setLoading(true);
+    try {
+      const mission = await apiPost<{ id: string }>("/missions", {
+        title: goal.slice(0, 100),
+        industryId: industry.id,
+        objective: goal,
+        context: context || undefined,
+        depth: DEPTH_MAP[depth] ?? "balanced",
+        budgetMode: "plan_credits",
+        selectedDocumentIds: files.filter(f => f.selected).map(f => f.id),
+      });
+      sessionStorage.setItem("currentMissionId", mission.id);
+      router.push("/app/misiones/nueva/equipo");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al crear la misión.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="bg-background font-body-md text-on-background min-h-screen flex">
@@ -270,17 +305,28 @@ export default function NuevaMisionPage() {
               <div style={{ width: "33%", height: "100%", background: "var(--color-secondary,#0058be)", transition: "width 0.5s" }} />
             </div>
           </div>
-          <div className="flex items-center gap-md">
-            <button type="button" className="px-xl py-md font-title-md text-title-md text-secondary hover:bg-surface-container rounded-lg transition-colors border border-transparent">
-              Guardar borrador
-            </button>
-            <Link
-              href="/app/misiones/nueva/equipo"
-              className="px-2xl py-md font-title-md text-title-md bg-secondary text-on-secondary rounded-lg hover:opacity-90 transition-all shadow-md active:scale-95 flex items-center gap-md"
-            >
-              Siguiente: Equipo
-              <span className="material-symbols-outlined">arrow_forward</span>
-            </Link>
+          <div className="flex flex-col items-end gap-xs">
+            {error && (
+              <p className="text-sm text-red-600 flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">error</span>{error}
+              </p>
+            )}
+            <div className="flex items-center gap-md">
+              <button type="button" className="px-xl py-md font-title-md text-title-md text-secondary hover:bg-surface-container rounded-lg transition-colors border border-transparent">
+                Guardar borrador
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={loading}
+                className="px-2xl py-md font-title-md text-title-md bg-secondary text-on-secondary rounded-lg hover:opacity-90 transition-all shadow-md active:scale-95 flex items-center gap-md disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading
+                  ? <><span className="material-symbols-outlined animate-spin">sync</span>Creando misión...</>
+                  : <>Siguiente: Equipo<span className="material-symbols-outlined">arrow_forward</span></>
+                }
+              </button>
+            </div>
           </div>
         </footer>
 
