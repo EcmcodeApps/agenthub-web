@@ -1,341 +1,269 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AppSidebar from "@/app/_components/AppSidebar";
+import { apiGet } from "@/lib/api/client";
 
-const NAV_ITEMS = [
-  { href: "/app/dashboard", icon: "dashboard", label: "Panel de Control" },
-  { href: "/app/misiones", icon: "assignment", label: "Misiones" },
-  { href: "/app/empresas", icon: "business", label: "Empresas" },
-  { href: "/app/agentes", icon: "smart_toy", label: "Agentes" },
-  { href: "/app/configuracion", icon: "settings", label: "Configuración" },
-];
+type Agent = {
+  id: string;
+  name: string;
+  role: string;
+  goal: string;
+  tools: string[];
+  modelRecommendation: string;
+  order: number;
+};
 
-const SPECIALISTS = [
-  { icon: "analytics", label: "Analista de Mercado", tokens: "35 tok/min" },
-  { icon: "database", label: "Gestor de Datos", tokens: "30 tok/min" },
-  { icon: "trending_up", label: "Predictor de Tendencias", tokens: "30 tok/min" },
-];
+const ROLE_INITIALS: Record<string, { bg: string; text: string }> = {
+  coordinator: { bg: "bg-purple-100", text: "text-purple-600" },
+  analyst:     { bg: "bg-blue-100",   text: "text-blue-600" },
+  data:        { bg: "bg-cyan-100",   text: "text-cyan-600" },
+  reporter:    { bg: "bg-green-100",  text: "text-green-600" },
+  researcher:  { bg: "bg-amber-100",  text: "text-amber-600" },
+};
 
-const DOCS = [
-  { icon: "table_chart", iconClass: "text-secondary", name: "Catalogo_Productos_2025.xlsx" },
-  { icon: "picture_as_pdf", iconClass: "text-error", name: "Competencia_Q1.pdf" },
-];
+function getRoleStyle(role: string) {
+  const k = role.toLowerCase();
+  if (k.includes("coord") || k.includes("orquest")) return ROLE_INITIALS.coordinator;
+  if (k.includes("anal") || k.includes("mercado")) return ROLE_INITIALS.analyst;
+  if (k.includes("dato") || k.includes("data") || k.includes("gestor")) return ROLE_INITIALS.data;
+  if (k.includes("report") || k.includes("predict")) return ROLE_INITIALS.reporter;
+  return ROLE_INITIALS.researcher;
+}
 
-const CHECKLIST = [
-  "Agentes configurados y listos",
-  "Créditos corporativos validados",
-  "Contexto de misión cargado",
-  "Objetivos de KPI definidos",
-];
+function initials(name: string) {
+  return name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+}
 
 export default function RevisarPage() {
-  const pathname = usePathname();
   const router = useRouter();
+  const [agents, setAgents]       = useState<Agent[]>([]);
+  const [loading, setLoading]     = useState(true);
   const [launching, setLaunching] = useState(false);
+  const [missionTitle, setMissionTitle] = useState("");
+  const [missionId, setMissionId] = useState("");
 
-  function handleLaunch() {
+  useEffect(() => {
+    const id    = sessionStorage.getItem("currentMissionId")    ?? "";
+    const title = sessionStorage.getItem("currentMissionTitle") ?? "Tu misión";
+    setMissionId(id);
+    setMissionTitle(title);
+    if (!id) { router.replace("/app/misiones/nueva"); return; }
+
+    apiGet<Agent[]>(`/missions/${id}/agents`)
+      .then(setAgents)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [router]);
+
+  const handleLaunch = async () => {
     setLaunching(true);
-    setTimeout(() => {
-      router.push("/app/misiones/nueva-mision-id/ejecucion");
-    }, 1500);
-  }
+    sessionStorage.removeItem("currentMissionId");
+    sessionStorage.removeItem("currentMissionTitle");
+    // Small delay for animation feel
+    await new Promise((r) => setTimeout(r, 600));
+    router.push("/app/misiones");
+  };
+
+  const totalTools = agents.reduce((s, a) => s + a.tools.length, 0);
 
   return (
-    <>
-      <style>{`
-        @keyframes pulse-glow {
-          0%   { box-shadow: 0 0 0 0 rgba(33,112,228,0.4); }
-          70%  { box-shadow: 0 0 0 15px rgba(33,112,228,0); }
-          100% { box-shadow: 0 0 0 0 rgba(33,112,228,0); }
-        }
-        .btn-launch-pulse:hover { animation: pulse-glow 1.5s infinite; }
-      `}</style>
+    <div className="flex min-h-screen bg-background">
+      <AppSidebar />
+      <main className="flex-1 flex flex-col min-w-0">
 
-      <div className="bg-background text-on-surface min-h-screen flex">
-        {/* Sidebar */}
-        <aside className="w-[260px] h-screen sticky left-0 top-0 bg-primary-container flex flex-col py-lg px-md shrink-0">
-          <div className="mb-2xl px-sm">
-            <h1 className="font-bold text-xl text-on-secondary-container">AgentHub</h1>
-            <p className="font-code-mono text-xs text-on-primary-container mt-xs">Corporativo v2.1</p>
-          </div>
-
-          <nav className="flex-1 space-y-sm">
-            {NAV_ITEMS.map(({ href, icon, label }) => {
-              const isActive = href === "/app/misiones";
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center gap-md px-md py-sm rounded-lg transition-colors ${
-                    isActive
-                      ? "bg-secondary-container text-on-secondary-container font-bold"
-                      : "text-on-primary-container hover:bg-white/10"
-                  }`}
-                >
-                  <span className="material-symbols-outlined">{icon}</span>
-                  <span className="text-body-md">{label}</span>
-                </Link>
-              );
-            })}
+        {/* Header */}
+        <header className="w-full h-16 sticky top-0 z-40 bg-surface border-b border-outline-variant flex justify-between items-center px-margin-desktop">
+          <nav className="flex items-center gap-sm text-on-surface-variant font-body-md">
+            <span>Misiones</span>
+            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+            <span className="text-primary font-bold">Nueva Misión</span>
           </nav>
-
-          <div className="mt-auto p-md bg-white/5 rounded-xl border border-white/10">
-            <div className="flex items-center gap-sm mb-sm">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-code-mono text-xs text-on-primary-container">Sistema Activo</span>
+          <div className="flex items-center gap-lg">
+            <button className="bg-secondary text-on-secondary px-lg py-sm rounded-full font-body-md flex items-center gap-sm transition-transform active:scale-95" style={{ boxShadow: "0 0 20px rgba(0,88,190,0.15)" }}>
+              <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+              Optimizar con IA
+            </button>
+            <div className="flex items-center gap-md text-on-surface-variant">
+              <span className="material-symbols-outlined cursor-pointer hover:text-secondary transition-colors">notifications</span>
+              <span className="material-symbols-outlined cursor-pointer hover:text-secondary transition-colors">account_circle</span>
             </div>
-            <Link
-              href="/app/misiones/nueva"
-              className="w-full py-sm px-md bg-secondary text-white font-bold rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-sm"
-            >
-              <span className="material-symbols-outlined text-[18px]">add</span>
-              Nueva Misión
-            </Link>
           </div>
-        </aside>
+        </header>
 
-        {/* Main */}
-        <main className="flex-1 flex flex-col min-h-screen relative">
-          {/* Step header */}
-          <header className="sticky top-0 z-40 bg-surface border-b border-outline-variant px-gutter h-20 flex items-center justify-center">
-            <div className="max-w-4xl w-full flex items-center justify-between relative">
-              {/* Progress line */}
-              <div className="absolute top-1/2 left-0 w-full h-[2px] bg-outline-variant -translate-y-1/2 z-0">
-                <div className="w-full h-full bg-secondary" />
-              </div>
+        <div className="flex-1 p-xl pb-32">
+          <div className="mx-auto space-y-xl" style={{ maxWidth: "72rem" }}>
 
-              {/* Step 1 */}
-              <div className="relative z-10 flex flex-col items-center gap-xs">
-                <div className="w-10 h-10 rounded-full bg-surface-container-highest border-2 border-outline-variant flex items-center justify-center text-outline">
-                  <span className="material-symbols-outlined text-[20px]">check_circle</span>
-                </div>
-                <span className="font-code-mono text-xs text-on-surface-variant">Configuración</span>
-              </div>
-
-              {/* Step 2 */}
-              <div className="relative z-10 flex flex-col items-center gap-xs">
-                <div className="w-10 h-10 rounded-full bg-surface-container-highest border-2 border-outline-variant flex items-center justify-center text-outline">
-                  <span className="material-symbols-outlined text-[20px]">check_circle</span>
-                </div>
-                <span className="font-code-mono text-xs text-on-surface-variant">Equipo</span>
-              </div>
-
-              {/* Step 3 — active */}
-              <div className="relative z-10 flex flex-col items-center gap-xs">
-                <div className="w-10 h-10 rounded-full bg-secondary-container border-2 border-secondary flex items-center justify-center text-white">
-                  <span className="font-bold">3</span>
-                </div>
-                <span className="font-code-mono text-xs font-bold text-on-surface">Revisar</span>
-              </div>
-            </div>
-          </header>
-
-          {/* Content grid */}
-          <div className="flex-1 p-gutter grid grid-cols-12 gap-gutter max-w-[1440px] mx-auto w-full pb-32">
-            {/* Left: review details */}
-            <section className="col-span-12 lg:col-span-7 space-y-gutter">
-              {/* Mission details */}
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
-                <h2 className="font-bold text-lg text-primary-container mb-lg border-l-4 border-secondary pl-md">
-                  Detalles de la Misión
-                </h2>
-                <div className="space-y-md">
-                  <div>
-                    <p className="font-code-mono text-xs text-on-surface-variant mb-xs">Nombre del Proyecto</p>
-                    <h3 className="font-extrabold text-2xl text-on-surface">
-                      Análisis de competencia retail Q2 2025
-                    </h3>
+            {/* Progress */}
+            <div className="flex justify-between items-center px-2xl">
+              {[
+                { label: "Definición", done: true },
+                { label: "Selección",  done: true },
+                { label: "Revisar",    done: false, active: true },
+              ].map((step, i) => (
+                <div key={i} className="flex flex-col items-center gap-sm flex-1 relative">
+                  {i < 2 && <div className="absolute top-5 left-1/2 w-full h-[2px] bg-secondary z-0" />}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center z-10 shadow-sm ${step.done ? "bg-secondary text-white" : step.active ? "border-2 border-secondary bg-white text-secondary" : "border-2 border-outline-variant bg-white text-on-surface-variant opacity-50"}`}
+                    style={step.active ? { boxShadow: "0 0 20px rgba(0,88,190,0.15)" } : {}}>
+                    {step.done
+                      ? <span className="material-symbols-outlined">check</span>
+                      : <span className="font-body-md font-bold">{i + 1}</span>}
                   </div>
-                  <div className="flex flex-wrap gap-sm">
-                    <span className="px-sm py-xs bg-secondary-fixed text-on-secondary-fixed font-code-mono text-xs rounded-lg font-bold uppercase">
-                      Retail & Logística
-                    </span>
-                    <span className="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed font-code-mono text-xs rounded-lg font-bold uppercase">
-                      Profunda (Alto impacto)
-                    </span>
-                    <span className="px-sm py-xs bg-surface-container-high text-on-surface-variant font-code-mono text-xs rounded-lg font-bold flex items-center gap-xs">
-                      <span className="material-symbols-outlined text-[14px]">calendar_today</span>
-                      Inicio: Inmediata
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Team */}
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
-                <h2 className="font-bold text-lg text-primary-container mb-lg border-l-4 border-secondary pl-md">
-                  Equipo Asignado
-                </h2>
-                <div className="space-y-sm">
-                  {/* Coordinator */}
-                  <div className="flex items-center justify-between p-md bg-secondary-container/5 rounded-lg border border-secondary/20">
-                    <div className="flex items-center gap-md">
-                      <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-white">
-                        <span className="material-symbols-outlined">supervisor_account</span>
-                      </div>
-                      <div>
-                        <p className="font-bold text-on-surface">Agente Coordinador</p>
-                        <p className="font-code-mono text-xs text-on-surface-variant">Liderazgo & Orquestación</p>
-                      </div>
-                    </div>
-                    <span className="font-code-mono text-sm font-bold text-secondary">45 tok/min</span>
-                  </div>
-
-                  {/* Specialists */}
-                  <div className="divide-y divide-outline-variant/30">
-                    {SPECIALISTS.map(({ icon, label, tokens }) => (
-                      <div key={label} className="flex items-center justify-between p-md">
-                        <div className="flex items-center gap-md">
-                          <div className="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-on-surface-variant">
-                            <span className="material-symbols-outlined text-[20px]">{icon}</span>
-                          </div>
-                          <span className="text-body-md text-on-surface">{label}</span>
-                        </div>
-                        <span className="font-code-mono text-sm text-on-surface-variant">{tokens}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Total */}
-                  <div className="mt-md pt-md border-t-2 border-dashed border-outline-variant flex justify-between items-center px-md">
-                    <span className="font-bold text-on-surface">Consumo Total del Equipo</span>
-                    <span className="font-code-mono text-xl font-bold text-secondary-container">140 tok/min</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Documents */}
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
-                <h2 className="font-bold text-lg text-primary-container mb-lg border-l-4 border-secondary pl-md">
-                  Documentos de Contexto
-                </h2>
-                <div className="flex flex-wrap gap-sm">
-                  {DOCS.map(({ icon, iconClass, name }) => (
-                    <div
-                      key={name}
-                      className="flex items-center gap-sm px-md py-sm bg-surface-container-high border border-outline-variant rounded-full text-on-surface-variant hover:bg-surface-variant transition-colors"
-                    >
-                      <span className={`material-symbols-outlined text-[18px] ${iconClass}`}>{icon}</span>
-                      <span className="font-code-mono text-xs">{name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {/* Right: launch card */}
-            <aside className="col-span-12 lg:col-span-5">
-              <div className="sticky top-24 bg-surface-container-lowest border-2 border-secondary shadow-lg rounded-xl p-lg overflow-hidden">
-                {/* Top accent bar */}
-                <div
-                  className="absolute top-0 left-0 w-full h-1"
-                  style={{ background: "linear-gradient(90deg, #0058be, #7073ff)" }}
-                />
-
-                <div className="flex items-center justify-between mb-lg">
-                  <h2 className="font-extrabold text-lg text-on-surface">Resumen de Inversión</h2>
-                  <span
-                    className="material-symbols-outlined text-secondary"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    rocket_launch
+                  <span className={`font-body-md font-medium ${step.active ? "text-primary font-bold" : step.done ? "text-secondary" : "text-on-surface-variant opacity-50"}`}>
+                    {step.label}
                   </span>
                 </div>
+              ))}
+            </div>
 
-                {/* Cost table */}
-                <table className="w-full mb-lg">
-                  <tbody className="divide-y divide-outline-variant/30">
-                    {[
-                      { label: "Equipo base", value: "315 cr." },
-                      { label: "Procesamiento Docs", value: "40 cr." },
-                      { label: "Costos Operativos", value: "25 cr." },
-                    ].map(({ label, value }) => (
-                      <tr key={label}>
-                        <td className="py-sm text-on-surface-variant text-body-md">{label}</td>
-                        <td className="py-sm text-right font-code-mono text-sm">{value}</td>
-                      </tr>
-                    ))}
-                    <tr className="font-bold">
-                      <td className="pt-md text-on-surface text-lg">Total estimado</td>
-                      <td className="pt-md text-right font-code-mono text-2xl text-secondary">380 cr.</td>
-                    </tr>
-                  </tbody>
-                </table>
+            {/* Title */}
+            <div className="space-y-sm">
+              <h1 className="font-headline-lg text-headline-lg text-primary">Revisar tu Misión</h1>
+              <div className="inline-flex items-center gap-sm text-on-surface-variant bg-surface-container-low p-sm rounded-lg">
+                <span className="material-symbols-outlined text-secondary">info</span>
+                <span className="font-body-md">Misión: <span className="font-bold text-primary">{missionTitle}</span></span>
+              </div>
+            </div>
 
-                {/* Duration */}
-                <div className="bg-surface-container p-md rounded-lg mb-lg border border-outline-variant/50">
-                  <p className="font-code-mono text-xs text-on-surface-variant mb-xs">Duración estimada de ejecución</p>
-                  <div className="flex items-center gap-sm">
-                    <span className="material-symbols-outlined text-secondary">timer</span>
-                    <span className="font-code-mono text-2xl font-bold text-on-surface">45 – 90 min</span>
+            {/* Two columns */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+
+              {/* Mission summary */}
+              <section className="rounded-xl p-lg space-y-lg shadow-sm" style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(12px)", border: "1px solid #E2E8F0" }}>
+                <div className="flex items-center gap-md border-b border-outline-variant pb-md">
+                  <div className="w-10 h-10 rounded-lg bg-secondary-container/10 flex items-center justify-center text-secondary">
+                    <span className="material-symbols-outlined">rocket_launch</span>
+                  </div>
+                  <h3 className="font-title-md text-title-md text-primary">Resumen de la Misión</h3>
+                </div>
+                <div className="space-y-md">
+                  <div>
+                    <label className="font-label-sm text-on-surface-variant uppercase tracking-wider block mb-xs">Objetivo</label>
+                    <p className="font-body-md text-on-surface leading-relaxed">{missionTitle || "—"}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-md">
+                    <div>
+                      <label className="font-label-sm text-on-surface-variant uppercase tracking-wider block mb-xs">Sector</label>
+                      <span className="bg-secondary-container/20 text-secondary px-sm py-xs rounded-full font-body-md inline-block">
+                        {sessionStorage.getItem ? (sessionStorage.getItem("currentIndustry") ?? "—") : "—"}
+                      </span>
+                    </div>
+                    <div>
+                      <label className="font-label-sm text-on-surface-variant uppercase tracking-wider block mb-xs">Profundidad</label>
+                      <span className="font-body-md font-medium text-primary flex items-center gap-xs">
+                        <span className="material-symbols-outlined text-[18px] text-secondary">balance</span>
+                        Balanceado
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="font-label-sm text-on-surface-variant uppercase tracking-wider block mb-xs">Presupuesto</label>
+                    <div className="flex items-center gap-md">
+                      <span className="font-body-md text-primary">Plan créditos</span>
+                      <div className="flex-1 h-2 bg-surface-container rounded-full overflow-hidden">
+                        <div className="h-full bg-secondary rounded-full" style={{ width: "75%" }} />
+                      </div>
+                      <span className="font-code-mono text-label-sm">Est. 450 cr.</span>
+                    </div>
                   </div>
                 </div>
+              </section>
 
-                {/* Checklist */}
-                <div className="space-y-sm mb-xl">
-                  {CHECKLIST.map((item) => (
-                    <div key={item} className="flex items-center gap-md">
-                      <span
-                        className="material-symbols-outlined text-emerald-500"
-                        style={{ fontVariationSettings: "'FILL' 1" }}
-                      >
-                        check_circle
-                      </span>
-                      <span className="font-code-mono text-xs text-on-surface">{item}</span>
+              {/* Agents summary */}
+              <section className="rounded-xl p-lg space-y-lg shadow-sm" style={{ background: "rgba(255,255,255,0.8)", backdropFilter: "blur(12px)", border: "1px solid #E2E8F0" }}>
+                <div className="flex items-center justify-between border-b border-outline-variant pb-md">
+                  <div className="flex items-center gap-md">
+                    <div className="w-10 h-10 rounded-lg bg-secondary-container/10 flex items-center justify-center text-secondary">
+                      <span className="material-symbols-outlined">smart_toy</span>
                     </div>
-                  ))}
+                    <h3 className="font-title-md text-title-md text-primary">Equipo de Agentes</h3>
+                  </div>
+                  <span className="bg-tertiary-fixed text-on-tertiary-fixed px-sm py-xs rounded-full font-label-sm">BETA AI v4.2</span>
                 </div>
 
-                {/* Launch button */}
-                <button
-                  onClick={handleLaunch}
-                  disabled={launching}
-                  className="btn-launch-pulse w-full py-md px-lg text-white rounded-xl font-bold text-lg flex items-center justify-center gap-md transition-all active:scale-95 shadow-md disabled:opacity-70"
-                  style={{ background: "linear-gradient(90deg, #0058be 0%, #7073ff 100%)" }}
-                >
-                  {launching ? "Iniciando..." : "Lanzar Misión"}
-                  {!launching && <span className="material-symbols-outlined">rocket</span>}
-                </button>
+                {loading ? (
+                  <div className="flex items-center justify-center py-8 text-on-surface-variant">
+                    <span className="material-symbols-outlined animate-spin mr-2">sync</span>
+                    Cargando agentes...
+                  </div>
+                ) : (
+                  <div className="space-y-sm">
+                    {agents.map((agent) => {
+                      const s = getRoleStyle(agent.role);
+                      return (
+                        <div key={agent.id} className="flex items-center gap-md p-sm hover:bg-surface-container-low rounded-lg transition-colors border border-transparent hover:border-outline-variant">
+                          <div className={`w-10 h-10 rounded-full ${s.bg} flex items-center justify-center ${s.text} font-bold text-sm`}>
+                            {initials(agent.name)}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex justify-between">
+                              <p className="font-body-md font-bold text-primary">{agent.name}</p>
+                              <span className="font-label-sm text-on-surface-variant">{agent.role}</span>
+                            </div>
+                            <p className="font-label-sm text-secondary">{agent.tools.length} herramientas activas</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
-                <p className="text-center font-code-mono text-xs text-on-surface-variant mt-md italic">
-                  *Al lanzar se descontarán 380 créditos de la cuenta corporativa.
+                <div className="pt-md border-t border-outline-variant text-center">
+                  <p className="font-body-md text-on-surface-variant font-medium">
+                    {agents.length} agentes · {totalTools} herramientas activas
+                  </p>
+                </div>
+              </section>
+            </div>
+
+            {/* Warning banner */}
+            <div className="rounded-xl p-lg flex gap-lg items-start" style={{ background: "#FFF8E1", border: "1px solid #FFE082" }}>
+              <span className="material-symbols-outlined" style={{ color: "#F57F17" }}>warning</span>
+              <div className="space-y-xs">
+                <p className="font-body-md font-bold" style={{ color: "#5D4037" }}>Recordatorio de Créditos</p>
+                <p className="font-body-md" style={{ color: "#795548" }}>
+                  Una vez lanzada, la misión consumirá créditos de tu plan. Asegúrate de revisar el equipo y las herramientas antes de continuar.
                 </p>
               </div>
-            </aside>
-          </div>
+            </div>
 
-          {/* Fixed bottom bar */}
-          <footer className="fixed bottom-0 left-[260px] right-0 h-20 bg-surface border-t border-outline-variant px-gutter flex items-center justify-between z-50">
-            <div className="flex items-center gap-md">
-              <Link
-                href="/app/misiones/nueva/equipo"
-                className="px-xl py-sm border border-outline text-on-surface font-bold rounded-lg hover:bg-surface-container transition-colors flex items-center gap-xs"
-              >
-                <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                Atrás
-              </Link>
-              <button className="px-xl py-sm text-secondary font-bold hover:bg-secondary/5 rounded-lg transition-colors">
-                Guardar borrador
-              </button>
+          </div>
+        </div>
+
+        {/* Fixed Bottom Bar */}
+        <footer className="fixed bottom-0 left-[260px] right-0 h-24 bg-white/95 border-t border-outline-variant backdrop-blur-md flex items-center justify-between px-margin-desktop shadow-lg z-40">
+          <div className="flex items-center gap-lg">
+            <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
+              <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
             </div>
-            <div className="flex items-center gap-gutter">
-              <div className="hidden md:block text-right">
-                <p className="font-code-mono text-xs text-on-surface-variant">Créditos disponibles</p>
-                <p className="font-code-mono text-sm font-bold text-on-surface">12,450 cr.</p>
-              </div>
-              <button
-                onClick={handleLaunch}
-                disabled={launching}
-                className="px-2xl py-sm bg-secondary text-white font-bold rounded-lg hover:opacity-90 transition-opacity shadow-lg disabled:opacity-70"
-              >
-                {launching ? "Iniciando..." : "Lanzar Misión"}
-              </button>
+            <div>
+              <p className="font-body-md font-bold text-primary">Misión lista para lanzar</p>
+              <p className="font-label-sm text-on-surface-variant">Todos los agentes configurados y validados</p>
             </div>
-          </footer>
-        </main>
-      </div>
-    </>
+          </div>
+          <div className="flex items-center gap-lg">
+            <button
+              onClick={() => router.back()}
+              className="px-xl py-md rounded-lg border border-outline font-body-md text-on-surface hover:bg-surface-container transition-colors active:scale-95"
+            >
+              ← Volver
+            </button>
+            <button
+              onClick={handleLaunch}
+              disabled={launching}
+              className="px-2xl py-md rounded-lg bg-secondary text-white font-headline-md flex items-center gap-md hover:brightness-110 active:scale-95 transition-all disabled:opacity-70"
+              style={{ boxShadow: "0 0 20px rgba(0,88,190,0.15)" }}
+            >
+              <span className={`material-symbols-outlined transition-transform duration-500 ${launching ? "-translate-y-3 opacity-0" : ""}`}>
+                rocket_launch
+              </span>
+              {launching ? "Lanzando..." : "Lanzar Misión"}
+            </button>
+          </div>
+        </footer>
+
+      </main>
+    </div>
   );
 }
