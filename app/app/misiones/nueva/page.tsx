@@ -71,6 +71,7 @@ export default function NuevaMisionPage() {
         selectedDocumentIds: files.filter(f => f.selected).map(f => f.id),
       });
       sessionStorage.setItem("currentMissionId", mission.id);
+      sessionStorage.setItem("currentMissionTitle", goal.slice(0, 80));
       router.push("/app/misiones/nueva/equipo");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al crear la misión.");
